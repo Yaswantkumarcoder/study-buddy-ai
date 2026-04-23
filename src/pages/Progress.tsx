@@ -6,22 +6,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, BarChart3, Clock, Target } from "lucide-react";
+import { Plus, BarChart3, Clock, Target, Sparkles, Loader2, NotebookPen, CheckCircle2, Flame } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+
+const verdictStyles: Record<string, { bg: string; label: string; emoji: string }> = {
+  excellent: { bg: "from-emerald-500 to-teal-500", label: "Excellent progress", emoji: "🚀" },
+  good: { bg: "from-cyan-500 to-blue-500", label: "Good progress", emoji: "✨" },
+  okay: { bg: "from-amber-500 to-orange-500", label: "Okay, keep pushing", emoji: "💪" },
+  needs_work: { bg: "from-rose-500 to-red-500", label: "Needs more focus", emoji: "🎯" },
+  just_starting: { bg: "from-violet-500 to-fuchsia-500", label: "Just getting started", emoji: "🌱" },
+};
 
 const Progress = () => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
+  const [notesCount, setNotesCount] = useState(0);
+  const [plansCount, setPlansCount] = useState(0);
+  const [tasks, setTasks] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [profile, setProfile] = useState<{ daily_goal_minutes: number } | null>(null);
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
   const [duration, setDuration] = useState(30);
   const [focus, setFocus] = useState(7);
+  const [insight, setInsight] = useState<{ verdict: string; headline: string; message: string; suggestions: string[] } | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase.from("study_sessions").select("*").eq("user_id", user.id).order("studied_at", { ascending: false });
-    setSessions(data || []);
+    const [{ data: s }, { count: nc }, { count: pc }, { data: pt }, { data: prof }] = await Promise.all([
+      supabase.from("study_sessions").select("*").eq("user_id", user.id).order("studied_at", { ascending: false }),
+      supabase.from("notes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("study_plans").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("plan_tasks").select("completed").eq("user_id", user.id),
+      supabase.from("profiles").select("daily_goal_minutes").eq("user_id", user.id).maybeSingle(),
+    ]);
+    setSessions(s || []);
+    setNotesCount(nc || 0);
+    setPlansCount(pc || 0);
+    const all = pt || [];
+    setTasks({ done: all.filter((t: any) => t.completed).length, total: all.length });
+    setProfile(prof as any);
   };
   useEffect(() => { load(); }, [user]);
 
@@ -57,12 +82,57 @@ const Progress = () => {
   const totalMin = sessions.reduce((a, s) => a + s.duration_minutes, 0);
   const avgFocus = sessions.length ? (sessions.reduce((a, s) => a + (s.focus_score || 0), 0) / sessions.length).toFixed(1) : "—";
 
+  // Streak
+  const dayKeys = new Set(sessions.map(s => new Date(s.studied_at).toDateString()));
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    if (dayKeys.has(d.toDateString())) streak++; else if (i > 0) break;
+  }
+
+  const generateInsight = async () => {
+    setInsightLoading(true);
+    setInsight(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("progress-insight", {
+        body: {
+          stats: {
+            dailyMinutes: days.map(d => ({ day: d.label, minutes: d.minutes })),
+            totalMinutes: totalMin,
+            sessionCount: sessions.length,
+            avgFocus,
+            notesCount,
+            plansCount,
+            tasksCompleted: tasks.done,
+            tasksTotal: tasks.total,
+            topSubjects: subjects,
+            streak,
+            goalMinutes: profile?.daily_goal_minutes ?? 60,
+          },
+        },
+      });
+      if (error) {
+        const status = (error as any).context?.status;
+        if (status === 429) toast.error("Rate limit reached, try again shortly.");
+        else if (status === 402) toast.error("AI credits exhausted. Add credits in Settings.");
+        else toast.error("Couldn't generate insight");
+        return;
+      }
+      setInsight(data);
+    } catch (e: any) {
+      toast.error(e.message || "Failed");
+    } finally { setInsightLoading(false); }
+  };
+
+  const verdict = insight ? verdictStyles[insight.verdict] || verdictStyles.okay : null;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Performance</h1>
-          <p className="text-sm text-muted-foreground">Track your study habits and focus over time.</p>
+          <p className="text-sm text-muted-foreground">Auto-tracked from your notes, plans & sessions.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -82,26 +152,75 @@ const Progress = () => {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* AI text-based progress insight */}
+      <Card className="p-5 bg-gradient-card border-primary/20">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${verdict?.bg || "from-violet-500 to-fuchsia-500"} flex items-center justify-center text-xl`}>
+              {verdict?.emoji || "🤖"}
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-primary font-semibold flex items-center gap-1.5"><Sparkles className="h-3 w-3" />AI Progress Check</p>
+              <p className="font-semibold">{insight?.headline || (verdict?.label || "See how you're really doing")}</p>
+            </div>
+          </div>
+          <Button onClick={generateInsight} disabled={insightLoading} variant="outline" size="sm">
+            {insightLoading ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Analyzing…</> : <><Sparkles className="h-4 w-4 mr-1.5" />{insight ? "Re-analyze" : "Analyze my progress"}</>}
+          </Button>
+        </div>
+        {insight && (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm leading-relaxed">{insight.message}</p>
+            {insight.suggestions?.length > 0 && (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">Next steps</p>
+                <ul className="space-y-1.5">
+                  {insight.suggestions.map((s, i) => (
+                    <li key={i} className="flex gap-2 text-sm"><span className="text-primary mt-0.5">→</span><span>{s}</span></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {!insight && !insightLoading && (
+          <p className="text-sm text-muted-foreground mt-3">
+            Click to get a written assessment of your study habits — strengths, weaknesses, and what to do next.
+          </p>
+        )}
+      </Card>
+
+      {/* Auto-tracked stats */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="p-4 bg-gradient-card hover-lift">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-2"><Flame className="h-5 w-5 text-white" /></div>
+          <p className="text-xs text-muted-foreground">Streak</p>
+          <p className="text-2xl font-bold">{streak}d</p>
+        </Card>
         <Card className="p-4 bg-gradient-card hover-lift">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-2"><Clock className="h-5 w-5 text-white" /></div>
-          <p className="text-xs text-muted-foreground">Total minutes</p>
+          <p className="text-xs text-muted-foreground">Total min</p>
           <p className="text-2xl font-bold">{totalMin}</p>
         </Card>
         <Card className="p-4 bg-gradient-card hover-lift">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mb-2"><BarChart3 className="h-5 w-5 text-white" /></div>
-          <p className="text-xs text-muted-foreground">Sessions</p>
-          <p className="text-2xl font-bold">{sessions.length}</p>
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mb-2"><NotebookPen className="h-5 w-5 text-white" /></div>
+          <p className="text-xs text-muted-foreground">Notes</p>
+          <p className="text-2xl font-bold">{notesCount}</p>
         </Card>
         <Card className="p-4 bg-gradient-card hover-lift">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mb-2"><Target className="h-5 w-5 text-white" /></div>
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mb-2"><CheckCircle2 className="h-5 w-5 text-white" /></div>
+          <p className="text-xs text-muted-foreground">Tasks done</p>
+          <p className="text-2xl font-bold">{tasks.done}<span className="text-sm text-muted-foreground">/{tasks.total}</span></p>
+        </Card>
+        <Card className="p-4 bg-gradient-card hover-lift col-span-2 md:col-span-1">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-2"><Target className="h-5 w-5 text-white" /></div>
           <p className="text-xs text-muted-foreground">Avg focus</p>
           <p className="text-2xl font-bold">{avgFocus}</p>
         </Card>
       </div>
 
       <Card className="p-5 bg-gradient-card">
-        <h3 className="font-semibold mb-4">Last 14 days</h3>
+        <h3 className="font-semibold mb-4 flex items-center gap-2"><BarChart3 className="h-4 w-4 text-primary" />Last 14 days</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={days}>
@@ -124,7 +243,7 @@ const Progress = () => {
       <Card className="p-5 bg-gradient-card">
         <h3 className="font-semibold mb-4">Time per subject</h3>
         {subjects.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">Log a session to see your breakdown.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">Log a session or finish plan tasks to see your breakdown.</p>
         ) : (
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
