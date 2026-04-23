@@ -78,8 +78,8 @@ const Notes = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Notes</h1>
-          <p className="text-sm text-muted-foreground">Paste your notes — AI will summarize and pull out key points.</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Notes Summarizer</h1>
+          <p className="text-sm text-muted-foreground">Paste any notes — AI instantly summarizes them and pulls out the key points.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
