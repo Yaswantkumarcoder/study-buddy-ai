@@ -243,6 +243,51 @@ export type Database = {
         }
         Relationships: []
       }
+      test_results: {
+        Row: {
+          created_at: string
+          difficulty: number | null
+          id: string
+          max_score: number
+          notes: string | null
+          percentage: number | null
+          score: number
+          subject: string
+          taken_at: string
+          test_type: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          max_score: number
+          notes?: string | null
+          percentage?: number | null
+          score: number
+          subject: string
+          taken_at?: string
+          test_type?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          max_score?: number
+          notes?: string | null
+          percentage?: number | null
+          score?: number
+          subject?: string
+          taken_at?: string
+          test_type?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
