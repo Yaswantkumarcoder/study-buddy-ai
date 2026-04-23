@@ -14,7 +14,235 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          key_points: Json | null
+          subject: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          key_points?: Json | null
+          subject?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          key_points?: Json | null
+          subject?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plan_tasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          day_index: number
+          id: string
+          plan_id: string
+          task_index: number
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          day_index: number
+          id?: string
+          plan_id: string
+          task_index: number
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          day_index?: number
+          id?: string
+          plan_id?: string
+          task_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_tasks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          daily_goal_minutes: number | null
+          display_name: string | null
+          id: string
+          study_goal: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          daily_goal_minutes?: number | null
+          display_name?: string | null
+          id?: string
+          study_goal?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          daily_goal_minutes?: number | null
+          display_name?: string | null
+          id?: string
+          study_goal?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          created_at: string
+          duration_days: number
+          goal: string
+          hours_per_day: number
+          id: string
+          plan: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days: number
+          goal: string
+          hours_per_day?: number
+          id?: string
+          plan: Json
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          goal?: string
+          hours_per_day?: number
+          id?: string
+          plan?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          duration_minutes: number
+          focus_score: number | null
+          id: string
+          notes: string | null
+          studied_at: string
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          duration_minutes: number
+          focus_score?: number | null
+          id?: string
+          notes?: string | null
+          studied_at?: string
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          duration_minutes?: number
+          focus_score?: number | null
+          id?: string
+          notes?: string | null
+          studied_at?: string
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
