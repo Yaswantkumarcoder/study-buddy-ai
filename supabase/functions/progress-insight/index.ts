@@ -16,16 +16,20 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
     const summary = `
-Last 14 days study minutes per day: ${JSON.stringify(stats.dailyMinutes)}
-Total study minutes (all time): ${stats.totalMinutes}
-Total sessions logged: ${stats.sessionCount}
-Average focus score (1-10): ${stats.avgFocus}
+Total tests/quizzes/exams taken: ${stats.totalTests}
+  - Quizzes: ${stats.quizCount}
+  - Tests: ${stats.testCount}
+  - Exams: ${stats.examCount}
+Overall average score: ${stats.avgPercent}%
+Best score: ${stats.bestPercent}%
+Worst score: ${stats.worstPercent}%
+Recent average (last 5): ${stats.recentAvg}%
+Earlier average (before that): ${stats.earlierAvg}%
+Trend: ${stats.trend}
+Average score per subject: ${JSON.stringify(stats.bySubject)}
+Last 10 results (newest first): ${JSON.stringify(stats.recent)}
 Notes created: ${stats.notesCount}
-Study plans created: ${stats.plansCount}
 Plan tasks completed: ${stats.tasksCompleted} / ${stats.tasksTotal}
-Top subjects (minutes): ${JSON.stringify(stats.topSubjects)}
-Current daily streak: ${stats.streak} days
-Daily goal: ${stats.goalMinutes} minutes
 `.trim();
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -34,7 +38,7 @@ Daily goal: ${stats.goalMinutes} minutes
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are a friendly, motivating study coach. Based on a student's stats, give an honest text-based assessment: are they progressing well or not? Be specific, point out trends, give 2-3 concrete suggestions. Keep it under 120 words. Use a warm tone, no markdown headings." },
+          { role: "system", content: "You are a friendly, motivating academic coach. Based on a student's TEST/QUIZ/EXAM scores, give an honest written assessment: are they actually improving? Compare recent vs earlier scores, call out weak subjects vs strong ones, and give 2-3 concrete next steps (which subjects to revise, what kind of test to try next, etc). Keep it under 130 words. Warm tone, no markdown headings." },
           { role: "user", content: summary },
         ],
         tools: [{
@@ -45,10 +49,10 @@ Daily goal: ${stats.goalMinutes} minutes
             parameters: {
               type: "object",
               properties: {
-                verdict: { type: "string", enum: ["excellent", "good", "okay", "needs_work", "just_starting"], description: "Overall progress verdict" },
+                verdict: { type: "string", enum: ["excellent", "good", "okay", "needs_work", "just_starting"], description: "Overall progress verdict based on test performance" },
                 headline: { type: "string", description: "One short headline (max 60 chars)" },
-                message: { type: "string", description: "Warm, motivating text assessment (60-120 words)" },
-                suggestions: { type: "array", items: { type: "string" }, description: "2-3 concrete next-step suggestions" },
+                message: { type: "string", description: "Warm, motivating text assessment focused on test scores (70-130 words)" },
+                suggestions: { type: "array", items: { type: "string" }, description: "2-3 concrete next-step suggestions (which subject to revise, etc)" },
               },
               required: ["verdict", "headline", "message", "suggestions"],
               additionalProperties: false,
