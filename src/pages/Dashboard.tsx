@@ -48,16 +48,6 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ icon: Icon, label, value, accent }: any) => (
-  <Card className="p-4 hover-lift bg-gradient-card">
-    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${accent} flex items-center justify-center mb-3`}>
-      <Icon className="h-5 w-5 text-white" />
-    </div>
-    <p className="text-xs text-muted-foreground">{label}</p>
-    <p className="text-2xl font-bold">{value}</p>
-  </Card>
-);
-
 const ActionCard = ({ to, icon: Icon, title, desc }: any) => (
   <Link to={to}>
     <Card className="p-5 hover-lift bg-gradient-card h-full">
