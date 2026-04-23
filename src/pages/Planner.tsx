@@ -107,8 +107,8 @@ const Planner = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Study Planner</h1>
-          <p className="text-sm text-muted-foreground">AI-generated, day-by-day plans tailored to your goal.</p>
+          <h1 className="text-2xl md:text-3xl font-bold">AI Study Planner</h1>
+          <p className="text-sm text-muted-foreground">Tell the AI your goal — it builds a complete day-by-day plan for you.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
