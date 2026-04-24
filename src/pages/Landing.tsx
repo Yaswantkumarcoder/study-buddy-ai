@@ -23,7 +23,7 @@ const Landing = () => {
             <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg gradient-text">StudyMind</span>
+            <span className="font-bold text-lg gradient-text">Oneprep</span>
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
@@ -90,7 +90,7 @@ const Landing = () => {
       <section className="max-w-4xl mx-auto px-4 pb-24">
         <div className="rounded-3xl bg-gradient-hero p-10 md:p-16 text-center text-primary-foreground shadow-elevated">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to level up your learning?</h2>
-          <p className="opacity-90 mb-8 max-w-xl mx-auto">Join students using StudyMind to study less and learn more.</p>
+          <p className="opacity-90 mb-8 max-w-xl mx-auto">Join students using Oneprep to study less and learn more.</p>
           <Button asChild size="lg" variant="secondary" className="hover:scale-105 transition-transform">
             <Link to={cta}>Get started — it's free</Link>
           </Button>
@@ -98,7 +98,7 @@ const Landing = () => {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} StudyMind. Built with ❤️ for students.
+        © {new Date().getFullYear()} Oneprep. Built with ❤️ for students.
       </footer>
     </div>
   );
