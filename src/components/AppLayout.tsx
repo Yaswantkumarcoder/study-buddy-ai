@@ -39,7 +39,7 @@ export const AppLayout = () => {
           <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg gradient-text">StudyMind</span>
+          <span className="font-bold text-lg gradient-text">Oneprep</span>
         </div>
         <nav className="flex-1 px-3 space-y-1">
           {nav.map((item) => (
@@ -80,7 +80,7 @@ export const AppLayout = () => {
           <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
             <GraduationCap className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-bold gradient-text">StudyMind</span>
+          <span className="font-bold gradient-text">Oneprep</span>
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sign out">
           <LogOut className="h-4 w-4" />
