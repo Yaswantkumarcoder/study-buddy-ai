@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { NotebookPen, CalendarRange, MessageSquare, Sparkles } from "lucide-react";
+import { FocusTimer } from "@/components/FocusTimer";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -34,6 +35,8 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">{greeting},</p>
         <h1 className="text-2xl md:text-3xl font-bold">{name || "Student"} 👋</h1>
       </div>
+
+      <FocusTimer />
 
       {/* Quick actions */}
       <div>
