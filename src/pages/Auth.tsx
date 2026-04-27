@@ -99,7 +99,7 @@ const Auth = () => {
           <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-xl gradient-text">StudyMind</span>
+          <span className="font-bold text-xl gradient-text">Oneprep</span>
         </Link>
 
         <Tabs defaultValue="signin">
